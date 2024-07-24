@@ -6,7 +6,7 @@ export default function ArticleForm() {
     const [articleData, setArticleData] = useState({ title: "", content: "" });
 
     useEffect(() => {
-        fetch(`https://sandbox.academiadevelopers.com/infosphere/categories`)
+        fetch(`${import.meta.env.VITE_API_BASE_URL}infosphere/categories`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error(
@@ -44,7 +44,7 @@ export default function ArticleForm() {
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        fetch(`https://sandbox.academiadevelopers.com/infosphere/articles/`, {
+        fetch(`${import.meta.env.VITE_API_BASE_URL}infosphere/articles/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -52,11 +52,20 @@ export default function ArticleForm() {
             },
             body: JSON.stringify(articleData),
         })
-            .then((response) => response.json())
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(
+                        "Error al realizar la petición al endpoint"
+                    );
+                }
+                return response.json();
+            })
             .then((data) => {
                 selectedCategories.forEach((category) => {
                     fetch(
-                        `https://sandbox.academiadevelopers.com/infosphere/article-categories/`,
+                        `${
+                            import.meta.env.VITE_API_BASE_URL
+                        }infosphere/article-categories/`,
                         {
                             method: "POST",
                             headers: {
