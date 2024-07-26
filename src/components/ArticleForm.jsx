@@ -4,8 +4,11 @@ export default function ArticleForm() {
     const [categories, setCategories] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [articleData, setArticleData] = useState({ title: "", content: "" });
+    const [submitting, setSubmitting] = useState(false);
+    const [loadingCategories, setLoadingCategories] = useState(true);
 
     useEffect(() => {
+        setLoadingCategories(true);
         fetch(`${import.meta.env.VITE_API_BASE_URL}infosphere/categories`)
             .then((response) => {
                 if (!response.ok) {
@@ -20,6 +23,9 @@ export default function ArticleForm() {
             })
             .catch((error) => {
                 console.error("Error fetching categories", error);
+            })
+            .finally(() => {
+                setLoadingCategories(false);
             });
     }, []);
 
@@ -44,47 +50,53 @@ export default function ArticleForm() {
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        fetch(`${import.meta.env.VITE_API_BASE_URL}infosphere/articles/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Token ${import.meta.env.VITE_API_TOKEN}`,
-            },
-            body: JSON.stringify(articleData),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(
-                        "Error al realizar la petición al endpoint"
-                    );
-                }
-                return response.json();
+        if (!submitting || !loadingCategories) {
+            setSubmitting(true);
+            fetch(`${import.meta.env.VITE_API_BASE_URL}infosphere/articles/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Token ${import.meta.env.VITE_API_TOKEN}`,
+                },
+                body: JSON.stringify(articleData),
             })
-            .then((data) => {
-                selectedCategories.forEach((category) => {
-                    fetch(
-                        `${
-                            import.meta.env.VITE_API_BASE_URL
-                        }infosphere/article-categories/`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Token ${
-                                    import.meta.env.VITE_API_TOKEN
-                                }`,
-                            },
-                            body: JSON.stringify({
-                                article: data.id,
-                                category: category.id,
-                            }),
-                        }
-                    );
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(
+                            "Error al realizar la petición al endpoint"
+                        );
+                    }
+                    return response.json();
+                })
+                .then((article) => {
+                    selectedCategories.forEach((category) => {
+                        fetch(
+                            `${
+                                import.meta.env.VITE_API_BASE_URL
+                            }infosphere/article-categories/`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Token ${
+                                        import.meta.env.VITE_API_TOKEN
+                                    }`,
+                                },
+                                body: JSON.stringify({
+                                    article: article.id,
+                                    category: category.id,
+                                }),
+                            }
+                        );
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error creating article", error);
+                })
+                .finally(() => {
+                    setSubmitting(false);
                 });
-            })
-            .catch((error) => {
-                console.error("Error creating article", error);
-            });
+        }
     };
 
     return (
@@ -132,7 +144,11 @@ export default function ArticleForm() {
             </div>
             <div className="field">
                 <div className="control">
-                    <button className="button is-primary" type="submit">
+                    <button
+                        className="button is-primary"
+                        type="submit"
+                        disabled={submitting || loadingCategories}
+                    >
                         Crear Artículo
                     </button>
                 </div>
