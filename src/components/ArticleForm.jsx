@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function ArticleForm() {
     const [categories, setCategories] = useState([]);
@@ -6,6 +7,8 @@ export default function ArticleForm() {
     const [articleData, setArticleData] = useState({ title: "", content: "" });
     const [submitting, setSubmitting] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState(true);
+
+    const { token } = useAuth("state");
 
     useEffect(() => {
         setLoadingCategories(true);
@@ -56,7 +59,7 @@ export default function ArticleForm() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Token ${import.meta.env.VITE_API_TOKEN}`,
+                    Authorization: `Token ${token}`,
                 },
                 body: JSON.stringify(articleData),
             })
@@ -78,9 +81,7 @@ export default function ArticleForm() {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
-                                    Authorization: `Token ${
-                                        import.meta.env.VITE_API_TOKEN
-                                    }`,
+                                    Authorization: `Token ${token}`,
                                 },
                                 body: JSON.stringify({
                                     article: article.id,
