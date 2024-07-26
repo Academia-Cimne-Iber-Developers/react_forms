@@ -1,8 +1,13 @@
+import { ThemePicker, useTheme } from "@teishi/bulma_theme";
+import ArticleForm from "./components/ArticleForm";
+
 function App() {
+    const { primary, secondary } = useTheme("state");
+
     return (
-        <>
-            <h1>Hellow World!</h1>
-        </>
+        <div className={`box has-background-${secondary}`}>
+            <ArticleForm />
+        </div>
     );
 }
 
